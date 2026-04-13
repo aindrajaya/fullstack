@@ -1,7 +1,7 @@
 {
   "name": "fullstack",
   "private": true,
-  "packageManager": "pnpm@10",
+  "packageManager": "pnpm@10.33.0",
   "version": "1.0.0",
   "description": "",
   "scripts": {
