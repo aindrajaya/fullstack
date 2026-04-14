@@ -56,6 +56,6 @@ export interface CreateOrderItemDTO {
 }
 
 export interface CreateOrderDTO {
-    userItems: string; // user email
-    orderItems: CreateOrderItemDTO[];
+    userId: string;
+    items: CreateOrderItemDTO[];
 }
