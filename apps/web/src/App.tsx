@@ -1,35 +1,72 @@
-import {useEffect, useState} from 'react';
-import type {UserDTO} from '@repo/shared';
+import { useState } from "react";
+import { ProductList } from "./components/ProductList";
+import { Cart } from "./components/Cart";
+import { ProductDTO } from "@repo/shared";
+
+interface CartItem {
+  product: ProductDTO;
+  quantity: number;
+}
 
 function App() {
-  const [users, setUsers] = useState<UserDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const userId = "budi@example.com"; // Sesuaikan dengan user ID dari database
 
-  useEffect(() => {
-    fetch('/api/users')
-      .then((response) => response.json())
-      .then((data) => {
-        setUsers(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
+  const handleAddToCart = (product: ProductDTO, quantity: number) => {
+    setCartItems(prev => {
+      const existing = prev.find(item => item.product.id === product.id);
+      if (existing) {
+        return prev.map(item =>
+          item.product.id === product.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      }
+      return [...prev, { product, quantity }];
+    });
+  };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  const handleRemoveItem = (productId: string) => {
+    setCartItems(prev => prev.filter(item => item.product.id !== productId));
+  };
+
+  const handleOrderSuccess = () => {
+    setCartItems([]);
+  };
 
   return (
-    <div>
-      <h1>Users</h1>
-      <ul>
-        {users.map((user) => (
-          <li key={user.id}>{user.name}</li>
-        ))}
-      </ul>
+    <div style={{
+      minHeight: "100vh",
+      backgroundColor: "#f5f5f5",
+      fontFamily: "Arial, sans-serif"
+    }}>
+      <header style={{
+        backgroundColor: "#2c3e50",
+        color: "white",
+        padding: "20px",
+        textAlign: "center"
+      }}>
+        <h1>🛍️ Toko Online - Order & Kalkulasi Pajak</h1>
+        <p>User ID: {userId}</p>
+      </header>
+
+      <div style={{
+        display: "flex",
+        maxWidth: "1200px",
+        margin: "0 auto"
+      }}>
+        <div style={{ flex: 2 }}>
+          <ProductList onAddToCart={handleAddToCart} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <Cart
+            items={cartItems}
+            userId={userId}
+            onRemoveItem={handleRemoveItem}
+            onOrderSuccess={handleOrderSuccess}
+          />
+        </div>
+      </div>
     </div>
   );
 }
