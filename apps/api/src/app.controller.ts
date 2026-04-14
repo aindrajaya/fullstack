@@ -1,7 +1,7 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { AppService } from './app.service';
 
-@Controller()
+@Controller("/")
 export class AppController {
   private readonly appService: AppService;
 
@@ -14,3 +14,4 @@ export class AppController {
     return this.appService.getHello();
   }
 }
+
