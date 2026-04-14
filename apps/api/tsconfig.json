@@ -1,0 +1,28 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module":                      "node16",
+    "moduleResolution":            "node16",
+    "resolvePackageJsonExports":   true,
+    "esModuleInterop":             true,
+    "declaration":                 true,
+    "removeComments":              true,
+    "emitDecoratorMetadata":       true,
+    "experimentalDecorators":      true,
+    "allowSyntheticDefaultImports": true,
+    "target":                      "es2021",
+    "sourceMap":                   true,
+    "outDir":                      "./dist",
+    "rootDir":                     "./src",
+    "incremental":                 true,
+    "skipLibCheck":                true,
+    "strictNullChecks":            true,
+    "noImplicitAny":               false,
+    "strictBindCallApply":         false,
+    "noFallthroughCasesInSwitch":  false,
+    "forceConsistentCasingInFileNames": true,
+    "types":                       ["node"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
