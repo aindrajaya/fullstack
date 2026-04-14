@@ -86,7 +86,7 @@ export class OrdersService {
         }> = [];
 
         for (const item of items) {
-            const product = await this.productsService.findOne(item.productId);
+            const product = await this.productsService.getProductById(item.productId);
             
             if (!product) {
                 throw new BadRequestException(`Produk ${item.productId} tidak ditemukan`);

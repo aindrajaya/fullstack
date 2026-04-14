@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ProductDTO } from "@repo/shared";
+import type { ProductDTO } from "@repo/shared";
 
 interface ProductListProps {
   onAddToCart: (product: ProductDTO, quantity: number) => void;
@@ -17,7 +17,7 @@ export function ProductList({ onAddToCart }: ProductListProps) {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:3000/products");
+      const response = await fetch("/api/products");
       if (!response.ok) throw new Error("Gagal mengambil produk");
       const data = await response.json();
       setProducts(data);
