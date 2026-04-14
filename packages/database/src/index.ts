@@ -1,4 +1,4 @@
-import {PrismaClient} from './generated/client/index.js';
+import { PrismaClient } from './generated/client';
 
 // Singleton pattern to avoid leaking database connections in development with hot reload
 declare global {
