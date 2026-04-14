@@ -11,19 +11,23 @@ export class ProductsService {
     }
     
     async getAllProducts(): Promise<ProductDTO[]> {
-        return this.prisma.product.findMany({
+        return this.prisma.client.product.findMany({
             orderBy: { createdAt: "desc" },
         });
     }
 
     async getProductById(id: string): Promise<ProductDTO | null> {
-        return this.prisma.product.findUnique({
+        return this.prisma.client.product.findUnique({
             where: { id },
         });
     }
+
+    async findOne(id: string): Promise<ProductDTO | null> {
+        return this.getProductById(id);
+    }
     
     async checkStock(productId: string, quantity: number): Promise<boolean> {
-        const product = await this.prisma.product.findUnique({
+        const product = await this.prisma.client.product.findUnique({
             where: { id: productId },
         });
         return product ? product.stock >= quantity : false;
