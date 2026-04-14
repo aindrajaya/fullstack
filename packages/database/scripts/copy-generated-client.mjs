@@ -1,14 +1,14 @@
-import { cpSync, existsSync, mkdirSync } from "node:fs";
+import { cp, mkdir, rm } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const sourceDir = resolve(here, "../src/generated/client");
-const targetDir = resolve(here, "../dist/generated/client");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-if (!existsSync(sourceDir)) {
-  throw new Error(`Prisma generated client not found at ${sourceDir}`);
-}
+const projectRoot = resolve(__dirname, "..");
+const sourceDir = resolve(projectRoot, "src/generated");
+const targetDir = resolve(projectRoot, "dist/generated");
 
-mkdirSync(dirname(targetDir), { recursive: true });
-cpSync(sourceDir, targetDir, { recursive: true, force: true });
+await rm(targetDir, { recursive: true, force: true });
+await mkdir(resolve(projectRoot, "dist"), { recursive: true });
+await cp(sourceDir, targetDir, { recursive: true });
