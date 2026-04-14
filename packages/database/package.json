@@ -14,7 +14,7 @@
         }
     },
     "scripts": {
-        "build": "tsc -p tsconfig.json && rimraf dist/generated && cp -R src/generated dist/generated",
+        "build": "tsc -p tsconfig.json && node scripts/copy-generated-client.mjs",
         "dev": "tsc -p tsconfig.json --watch",
         "lint": "eslint src --ext .ts",
         "test": "echo \"No test yet\"",
