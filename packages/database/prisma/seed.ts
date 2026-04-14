@@ -1,34 +1,64 @@
 import { prisma } from "../src/index";
 
 async function main() {
-  console.log("🌱 Mulai seeding...");
+  console.log("Starting database seed...");
 
-  // upsert = update jika ada, create jika belum ada
-  // Dengan begini, seed bisa dijalankan berkali-kali tanpa error duplikasi
+  // Upsert updates existing rows and creates missing ones,
+  // so the seed can be run repeatedly without duplicate errors.
   await prisma.user.upsert({
-    where:  { email: "admin@example.com" },
+    where: { email: "admin@example.com" },
     update: {},
-    create: { email: "admin@example.com", name: "Admin", role: "admin" },
+    create: { email: "admin@example.com", name: "Admin", role: "ADMIN" },
   });
 
   await prisma.user.upsert({
-    where:  { email: "budi@example.com" },
+    where: { email: "albert@example.com" },
     update: {},
-    create: { email: "budi@example.com", name: "Budi Santoso", role: "user" },
+    create: { email: "albert@example.com", name: "Albert Conseca", role: "USER" },
   });
 
   await prisma.user.upsert({
-    where:  { email: "sari@example.com" },
+    where: { email: "john@example.com" },
     update: {},
-    create: { email: "sari@example.com", name: "Sari Dewi", role: "user" },
+    create: { email: "john@example.com", name: "John Watch", role: "USER" },
   });
 
   const products = [
-    { name: "Laptop Dell", description: "Laptop gaming 15 inch", price: 15000000, tax: 0.10, stock: 10 },
-    { name: "Mouse Logitech", description: "Mouse wireless", price: 350000, tax: 0.10, stock: 50 },
-    { name: "Keyboard Mechanical", description: "RGB Mechanical Keyboard", price: 1200000, tax: 0.10, stock: 30 },
-    { name: "Monitor 4K", description: "Monitor 27 inch 4K", price: 3500000, tax: 0.10, stock: 15 },
-    { name: "Webcam HD", description: "Webcam 1080p", price: 500000, tax: 0.10, stock: 25 },
+    {
+      name: "Espresso Blend 250g",
+      description: "Medium-dark house blend for espresso with chocolate and caramel notes",
+      price: 95000,
+      tax: 0.1,
+      stock: 80,
+    },
+    {
+      name: "Single Origin Gayo 200g",
+      description: "Light-medium roast Gayo arabica with citrus, floral, and clean finish notes",
+      price: 110000,
+      tax: 0.1,
+      stock: 60,
+    },
+    {
+      name: "Cold Brew Bottle 1L",
+      description: "Ready-to-drink cold brew with a light body and chocolate finish",
+      price: 48000,
+      tax: 0.1,
+      stock: 40,
+    },
+    {
+      name: "Cafe Latte 16 oz",
+      description: "Creamy milk-based espresso drink for the everyday coffee bar menu",
+      price: 38000,
+      tax: 0.1,
+      stock: 75,
+    },
+    {
+      name: "Manual Brew Starter Kit",
+      description: "V60 dripper set with paper filters, server, and scoop for manual brewing",
+      price: 325000,
+      tax: 0.1,
+      stock: 18,
+    },
   ];
 
   for (const product of products) {
@@ -50,15 +80,15 @@ async function main() {
     });
   }
 
-  console.log("✅ Seeding selesai!");
+  console.log("Database seed completed.");
 }
 
 main()
   .then(async () => {
     await prisma.$disconnect();
   })
-  .catch(async (e) => {
-    console.error("❌ Seed gagal:", e);
+  .catch(async (error) => {
+    console.error("Seed failed:", error);
     await prisma.$disconnect();
     process.exit(1);
   });

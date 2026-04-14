@@ -1,5 +1,6 @@
 import { useState } from "react";
-import type { ProductDTO, CreateOrderDTO } from "@repo/shared";
+import { useQueryClient } from "@tanstack/react-query";
+import type { CreateOrderDTO, ProductDTO } from "@repo/shared";
 
 interface CartItem {
   product: ProductDTO;
@@ -16,24 +17,25 @@ interface CartProps {
 export function Cart({ items, userId, onRemoveItem, onOrderSuccess }: CartProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  // 🎯 Kalkulasi subtotal (tanpa pajak)
-  const subtotal = items.reduce((sum, item) => {
-    return sum + (item.product.price * item.quantity);
-  }, 0);
+  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
-  // 🎯 Kalkulasi total pajak
   const totalTax = items.reduce((sum, item) => {
     const itemSubtotal = item.product.price * item.quantity;
-    return sum + (itemSubtotal * item.product.tax);
+    return sum + itemSubtotal * item.product.tax;
   }, 0);
 
-  // 🎯 Kalkulasi total akhir
   const totalPrice = subtotal + totalTax;
 
   const handleCheckout = async () => {
+    if (!userId) {
+      setError("Select a user before checkout");
+      return;
+    }
+
     if (items.length === 0) {
-      setError("Keranjang kosong!");
+      setError("Your cart is empty");
       return;
     }
 
@@ -43,25 +45,26 @@ export function Cart({ items, userId, onRemoveItem, onOrderSuccess }: CartProps)
     try {
       const orderData: CreateOrderDTO = {
         userId,
-        items: items.map(item => ({
+        items: items.map((item) => ({
           productId: item.product.id,
-          quantity: item.quantity
-        }))
+          quantity: item.quantity,
+        })),
       };
 
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderData)
+        body: JSON.stringify(orderData),
       });
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.message || "Gagal membuat order");
+        throw new Error(data.message || "Failed to create order");
       }
 
-      alert("✅ Order berhasil dibuat!");
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
       onOrderSuccess();
+      alert("Order created successfully!");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     } finally {
@@ -70,50 +73,49 @@ export function Cart({ items, userId, onRemoveItem, onOrderSuccess }: CartProps)
   };
 
   return (
-    <div style={{ padding: "20px", borderLeft: "1px solid #ddd", flex: 1 }}>
-      <h2>🛒 Keranjang Belanja</h2>
+    <div className="space-y-5">
+      <div>
+        <h3 className="text-lg font-semibold text-stone-900">Shopping Cart</h3>
+        <p className="mt-1 text-sm text-stone-500">Review totals, tax, and complete the order.</p>
+      </div>
 
       {items.length === 0 ? (
-        <p style={{ color: "#999" }}>Keranjang kosong...</p>
+        <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-5 py-8 text-sm text-stone-500">
+          Your cart is empty.
+        </div>
       ) : (
         <>
-          <div style={{ marginBottom: "20px" }}>
-            {items.map(item => {
+          <div className="space-y-4">
+            {items.map((item) => {
               const itemSubtotal = item.product.price * item.quantity;
               const itemTax = itemSubtotal * item.product.tax;
               const itemTotal = itemSubtotal + itemTax;
 
               return (
-                <div key={item.product.id} style={{
-                  borderBottom: "1px solid #eee",
-                  paddingBottom: "10px",
-                  marginBottom: "10px"
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <div
+                  key={item.product.id}
+                  className="rounded-2xl border border-stone-200 bg-stone-50 p-4"
+                >
+                  <div className="flex items-start justify-between gap-4">
                     <div>
-                      <strong>{item.product.name}</strong>
-                      <p>Qty: {item.quantity} × Rp {item.product.price.toLocaleString("id-ID")}</p>
+                      <p className="font-semibold text-stone-900">{item.product.name}</p>
+                      <p className="mt-1 text-sm text-stone-500">
+                        Qty: {item.quantity} x Rp {item.product.price.toLocaleString("id-ID")}
+                      </p>
                     </div>
                     <button
+                      className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100"
                       onClick={() => onRemoveItem(item.product.id)}
-                      style={{
-                        padding: "5px 10px",
-                        backgroundColor: "#dc3545",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer"
-                      }}
+                      type="button"
                     >
-                      ❌ Hapus
+                      Remove
                     </button>
                   </div>
-                  <div style={{ fontSize: "0.9em", color: "#666", marginTop: "5px" }}>
+
+                  <div className="mt-3 space-y-1 text-sm text-stone-600">
                     <p>Subtotal: Rp {itemSubtotal.toLocaleString("id-ID")}</p>
-                    <p style={{ color: "#ff6b6b" }}>
-                      Pajak ({(item.product.tax * 100).toFixed(0)}%): Rp {itemTax.toLocaleString("id-ID")}
-                    </p>
-                    <p style={{ fontWeight: "bold", color: "#28a745" }}>
+                    <p>Tax ({(item.product.tax * 100).toFixed(0)}%): Rp {itemTax.toLocaleString("id-ID")}</p>
+                    <p className="font-semibold text-emerald-700">
                       Total: Rp {itemTotal.toLocaleString("id-ID")}
                     </p>
                   </div>
@@ -122,52 +124,30 @@ export function Cart({ items, userId, onRemoveItem, onOrderSuccess }: CartProps)
             })}
           </div>
 
-          <div style={{
-            backgroundColor: "#f8f9fa",
-            padding: "15px",
-            borderRadius: "8px",
-            marginBottom: "20px"
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
-              <span>Subtotal:</span>
+          <div className="rounded-2xl border border-stone-200 bg-stone-950 p-5 text-stone-50">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-stone-300">Subtotal</span>
               <strong>Rp {subtotal.toLocaleString("id-ID")}</strong>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px", color: "#ff6b6b" }}>
-              <span>Total Pajak:</span>
+            <div className="mt-2 flex items-center justify-between text-sm text-amber-300">
+              <span>Total Tax</span>
               <strong>Rp {totalTax.toLocaleString("id-ID")}</strong>
             </div>
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              paddingTop: "10px",
-              borderTop: "2px solid #ddd",
-              fontSize: "1.2em",
-              color: "#28a745"
-            }}>
-              <span>TOTAL:</span>
+            <div className="mt-4 flex items-center justify-between border-t border-stone-700 pt-4 text-lg font-semibold">
+              <span>Total</span>
               <strong>Rp {totalPrice.toLocaleString("id-ID")}</strong>
             </div>
           </div>
 
-          {error && <p style={{ color: "red" }}>❌ {error}</p>}
+          {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
           <button
-            onClick={handleCheckout}
+            className="w-full rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:bg-emerald-300"
             disabled={loading}
-            style={{
-              width: "100%",
-              padding: "12px",
-              backgroundColor: "#28a745",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              fontSize: "1em",
-              fontWeight: "bold",
-              cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading ? 0.6 : 1
-            }}
+            onClick={handleCheckout}
+            type="button"
           >
-            {loading ? "⏳ Processing..." : "✅ Checkout Pesanan"}
+            {loading ? "Processing..." : "Place Order"}
           </button>
         </>
       )}
