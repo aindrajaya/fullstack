@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ProductDTO, CreateOrderDTO } from "@repo/shared";
+import type { ProductDTO, CreateOrderDTO } from "@repo/shared";
 
 interface CartItem {
   product: ProductDTO;
@@ -49,7 +49,7 @@ export function Cart({ items, userId, onRemoveItem, onOrderSuccess }: CartProps)
         }))
       };
 
-      const response = await fetch("http://localhost:3000/orders", {
+      const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData)
