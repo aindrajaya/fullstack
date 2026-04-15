@@ -12,3 +12,9 @@ export interface CreateUserDTO {
     email: string;
     name: string; 
 }
+
+export interface ProductsDTO {
+    id: number;
+    title: string;
+    description: string;
+}
